@@ -1,0 +1,26 @@
+# file: scripts/synth.ys
+# Yosys synthesis script for Smart Home Automation Controller
+
+# Read Verilog source files
+read_verilog rtl/clk_en.v
+read_verilog rtl/debounce.v
+read_verilog rtl/pwm8.v
+read_verilog rtl/scenes.v
+read_verilog rtl/scheduler.v
+read_verilog rtl/uart_rx.v
+read_verilog rtl/uart_tx.v
+read_verilog rtl/proto.v
+read_verilog rtl/ctrl_fsm.v
+read_verilog rtl/top.v
+
+# Check design hierarchy
+hierarchy -top top
+
+# Synthesize for Xilinx FPGA architecture
+synth_xilinx -flatten -top top
+
+# Output design statistics
+stat
+
+# Save schematic JSON representation
+write_json reports/home_synth.json

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPGA Smart Home Controller Simulator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Courier+Prime&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <!-- SIDEBAR: SYSTEM CONTROLLER METRICS -->
+        <aside>
+            <header>
+                <h1>Smart Home FPGA</h1>
+                <p>Hardware Emulator & Telemetry</p>
+            </header>
+
+            <!-- Timekeeping -->
+            <div class="status-badge">
+                <span>Simulated Time</span>
+                <span id="clockDisplay" style="font-family: monospace; font-weight: bold; font-size: 1rem;">17:58</span>
+            </div>
+
+            <!-- FSM Node Visualizer -->
+            <div class="fsm-state-card">
+                <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">Priority FSM State</span>
+                <div class="fsm-node-container">
+                    <div id="node-idle" class="fsm-node active">IDLE<br>00</div>
+                    <div id="node-manual" class="fsm-node">MAN<br>01</div>
+                    <div id="node-auto" class="fsm-node">AUTO<br>10</div>
+                    <div id="node-alarm" class="fsm-node">ALRM<br>11</div>
+                </div>
+                <div class="status-badge">
+                    <span id="fsmStateText">IDLE (00)</span>
+                    <div class="status-dot"></div>
+                </div>
+            </div>
+
+            <!-- Board Presets -->
+            <div class="control-group">
+                <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">Scene ROM Presets (idx 0..7)</span>
+                <div class="preset-grid">
+                    <button class="btn-preset" title="ALL OFF">Off</button>
+                    <button class="btn-preset" title="EVENING">Eve</button>
+                    <button class="btn-preset" title="WORK">Work</button>
+                    <button class="btn-preset" title="NIGHT">Night</button>
+                    <button class="btn-preset" title="READING">Read</button>
+                    <button class="btn-preset" title="PARTY">Party</button>
+                    <button class="btn-preset" title="ECO">Eco</button>
+                    <button class="btn-preset" title="EMERGENCY">Emer</button>
+                </div>
+            </div>
+
+            <!-- Board Status Indicators -->
+            <div class="system-stats">
+                <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">LED Status Indicators</span>
+                <div class="status-badge" style="justify-content: space-between; padding: 8px 12px;">
+                    <span>ALARM_LED (Red)</span>
+                    <div id="led-alarm" style="width: 12px; height: 12px; border-radius: 50%; background: #334155;"></div>
+                </div>
+                <div class="status-badge" style="justify-content: space-between; padding: 8px 12px;">
+                    <span>ENERGY_LED (Eco)</span>
+                    <div id="led-eco" style="width: 12px; height: 12px; border-radius: 50%; background: #334155;"></div>
+                </div>
+                <div class="status-badge" style="justify-content: space-between; padding: 8px 12px;">
+                    <span>Night Mode Cap</span>
+                    <span id="nightModeBadge" class="relay-status relay-off">OFF</span>
+                </div>
+            </div>
+            
+        </aside>
+
+        <!-- MAIN MONITORING WORKSPACE -->
+        <main>
+            
+            <div class="panel-row">
+                
+                <!-- CARD 1: ENVIRONMENTAL SENSORS & INPUTS -->
+                <div class="card">
+                    <h2>Environment Sensors <span style="font-size: 0.8rem; color: var(--text-secondary);">(Simulated Switches)</span></h2>
+                    
+                    <div class="control-group">
+                        
+                        <!-- Security mode switch -->
+                        <div class="switch-wrapper">
+                            <div>
+                                <h4 style="font-size: 0.9rem;">Security Alarm Switch</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary);">SW0: Arm / disarm intruder logic</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-security">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <!-- Temp High Switch -->
+                        <div class="switch-wrapper">
+                            <div>
+                                <h4 style="font-size: 0.9rem;">Temperature Threshold High</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary);">SW1: Emulate hot indoor temperature</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-temp">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Motion sensor switch -->
+                        <div class="switch-wrapper">
+                            <div>
+                                <h4 style="font-size: 0.9rem;">PIR Motion Sensor</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary);">SW2: Emulate room occupancy</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-pir">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Light level switch -->
+                        <div class="switch-wrapper">
+                            <div>
+                                <h4 style="font-size: 0.9rem;">LDR Darkness Threshold</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary);">SW3: Emulate nighttime low-light</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-dark">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Overcurrent fault switch -->
+                        <div class="switch-wrapper" style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 15px;">
+                            <div>
+                                <h4 style="font-size: 0.9rem; color: var(--neon-red);">Over-Current Safety Fault</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary);">SW4: Inject short-circuit fault</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-overcur">
+                                <span class="slider" style="background-color: rgba(255, 49, 49, 0.08);"></span>
+                            </label>
+                        </div>
+
+                        <!-- Door sensor switch -->
+                        <div class="switch-wrapper">
+                            <div>
+                                <h4 style="font-size: 0.9rem;">Door Intrusion Sensor</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary);">SW5: Simulated magnetic contact</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-door">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- CARD 2: LIGHTING (PWM) & FANS (PWM) -->
+                <div class="card">
+                    <h2>Actuator PWM Voltages <span style="font-size: 0.8rem; color: var(--text-secondary);">(8-bit Duty Cycle)</span></h2>
+                    
+                    <div class="actuator-grid">
+                        
+                        <!-- Light L0 -->
+                        <div class="actuator-box">
+                            <span class="actuator-label">L0_PWM</span>
+                            <div class="bulb-icon" id="bulb-L0">💡</div>
+                            <span class="actuator-value" id="L0_val">0%</span>
+                            <button id="btn-toggle-L0" style="padding: 2px 8px; font-size: 0.65rem; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.3); color: white; cursor: pointer;">Toggle Btn0</button>
+                        </div>
+
+                        <!-- Light L1 -->
+                        <div class="actuator-box">
+                            <span class="actuator-label">L1_PWM</span>
+                            <div class="bulb-icon" id="bulb-L1">💡</div>
+                            <span class="actuator-value" id="L1_val">0%</span>
+                            <button id="btn-toggle-L1" style="padding: 2px 8px; font-size: 0.65rem; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0,0,0,0.3); color: white; cursor: pointer;">Toggle Btn1</button>
+                        </div>
+
+                        <!-- Light L2 -->
+                        <div class="actuator-box">
+                            <span class="actuator-label">L2_PWM</span>
+                            <div class="bulb-icon" id="bulb-L2">💡</div>
+                            <span class="actuator-value" id="L2_val">0%</span>
+                        </div>
+
+                        <!-- Light L3 -->
+                        <div class="actuator-box">
+                            <span class="actuator-label">L3_PWM</span>
+                            <div class="bulb-icon" id="bulb-L3">💡</div>
+                            <span class="actuator-value" id="L3_val">0%</span>
+                        </div>
+
+                        <!-- Fan F0 -->
+                        <div class="actuator-box">
+                            <span class="actuator-label">F0_PWM (Fan)</span>
+                            <!-- SVG Propellor Icon -->
+                            <div class="fan-icon" id="fan-F0">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M12 12c0 2.76 2.24 5 5 5s5-2.24 5-5-2.24-5-5-5-5 2.24-5 5z"/><path d="M12 12c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/><path d="M12 12c0-2.76-2.24-5-5-5s-5 2.24-5 5 2.24 5 5 5 5-2.24 5-5z"/></svg>
+                            </div>
+                            <span class="actuator-value" id="F0_val">0%</span>
+                        </div>
+
+                        <!-- Fan F1 -->
+                        <div class="actuator-box">
+                            <span class="actuator-label">F1_PWM (Fan)</span>
+                            <div class="fan-icon" id="fan-F1">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z"/><path d="M12 12c0 2.76 2.24 5 5 5s5-2.24 5-5-2.24-5-5-5-5 2.24-5 5z"/><path d="M12 12c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/><path d="M12 12c0-2.76-2.24-5-5-5s-5 2.24-5 5 2.24 5 5 5 5-2.24 5-5z"/></svg>
+                            </div>
+                            <span class="actuator-value" id="F1_val">0%</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANEL ROW 2: SOCKET RELAYS AND LIVE LOGIC ANALYZER -->
+            <div class="panel-row">
+                
+                <!-- Socket Relays status -->
+                <div class="card">
+                    <h2>Power Sockets Relays <span style="font-size: 0.8rem; color: var(--text-secondary);">(R0 - R3)</span></h2>
+                    
+                    <div class="relay-list">
+                        <div class="relay-row" id="relay-R0">
+                            <span style="font-weight: 600; font-size: 0.9rem;">Relay R0 (Socket 0)</span>
+                            <span class="relay-status relay-off">OPEN (OFF)</span>
+                        </div>
+                        <div class="relay-row" id="relay-R1">
+                            <span style="font-weight: 600; font-size: 0.9rem;">Relay R1 (Socket 1)</span>
+                            <span class="relay-status relay-off">OPEN (OFF)</span>
+                        </div>
+                        <div class="relay-row" id="relay-R2">
+                            <span style="font-weight: 600; font-size: 0.9rem;">Relay R2 (Socket 2)</span>
+                            <span class="relay-status relay-off">OPEN (OFF)</span>
+                        </div>
+                        <div class="relay-row" id="relay-R3">
+                            <span style="font-weight: 600; font-size: 0.9rem;">Relay R3 (Socket 3)</span>
+                            <span class="relay-status relay-off">OPEN (OFF)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live digital wave analyzer -->
+                <div class="card">
+                    <h2>Live Logic Waveform Analyzer <span style="font-size: 0.8rem; color: var(--text-secondary);">(Scrolling Trace)</span></h2>
+                    <div class="waveform-container">
+                        <canvas id="waveCanvas"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PANEL ROW 3: UART BRIDGE & PACKET BUILDER TERMINAL -->
+            <div class="card terminal-card">
+                <h2>UART Bridge (FPGA ↔ ESP32 Serial Terminal)</h2>
+                
+                <div class="terminal-log" id="terminalLog"></div>
+                
+                <div class="terminal-input-row">
+                    
+                    <!-- Command Generator Helper -->
+                    <select id="cmdSelect">
+                        <option value="" disabled selected>Quick Command Presets...</option>
+                        <option value="set_duty_50">SET_DUTY (Ch0, 50% Dimmer)</option>
+                        <option value="set_relay_all">SET_RELAY (All sockets ON)</option>
+                        <option value="load_scene_night">LOAD_SCENE (Recall Night scene)</option>
+                        <option value="night_mode_on">SET_NIGHT_MODE (Enable max cap limit)</option>
+                    </select>
+
+                    <input type="text" id="hexInput" placeholder="Enter Hex Stream (e.g. AA 01 02 00 80 83) to send to FPGA..." />
+                    
+                    <button class="btn-primary" id="btnSendHex">Send Packet</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

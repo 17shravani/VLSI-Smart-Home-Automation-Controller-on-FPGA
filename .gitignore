@@ -1,0 +1,26 @@
+# Vivado build, log, and run directories
+*.log
+*.jou
+*.pb
+*.str
+.Xil/
+xsim.dir/
+xsc.log
+HDHelper.txt
+
+# Simulation artifact files
+sim.out
+*.vcd
+*.wdb
+*.wcfg
+*.vcd.fst
+
+# Synthesis build outputs
+build/
+bin/
+
+# OS-specific temporary files
+.DS_Store
+.DS_Store?
+ehthumbs.db
+Thumbs.db
