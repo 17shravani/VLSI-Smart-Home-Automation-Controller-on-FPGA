@@ -1,5 +1,5 @@
 # Smart Home Automation Controller on FPGA
-![Uploading Screenshot 2026-06-21 174958.png…]()
+<img width="1922" height="896" alt="Screenshot 2026-06-21 174958" src="https://github.com/user-attachments/assets/be17092c-0518-4c0a-ac87-bb035ef63a58" /> 
 
 [![Verilog](https://img.shields.io/badge/Language-Verilog-brightgreen.svg)](https://en.wikipedia.org/wiki/Verilog)
 [![FPGA](https://img.shields.io/badge/Platform-Xilinx%20Vivado-orange.svg)](https://www.xilinx.com/products/design-tools/vivado.html)
